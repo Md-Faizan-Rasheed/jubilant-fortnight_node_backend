@@ -366,9 +366,9 @@ router.get('/:id', async (req, res) => {
 
 
 
-const  accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const serviceid = process.env.TWILIO_SERVICE_ID
+// const  accountSid = process.env.TWILIO_ACCOUNT_SID;
+// const authToken = process.env.TWILIO_AUTH_TOKEN;
+// const serviceid = process.env.TWILIO_SERVICE_ID
 // // Import dotenv and configure it at the top of the file
 // require('dotenv').config();
 
@@ -378,17 +378,17 @@ const serviceid = process.env.TWILIO_SERVICE_ID
 // const serviceid = process.env.TWILIO_SERVICE_ID;
 
 // Verify environment variables are loaded
-if (!accountSid || !authToken || !serviceid) {
-    console.error('Missing required environment variables for Twilio:');
-    console.error('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID);
-    console.error('TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN);
-    console.error('TWILIO_SERVICE_ID:', process.env.TWILIO_SERVICE_ID);
-    console.log("mongo uri",process.env.MONGO_URL);
+// if (!accountSid || !authToken || !serviceid) {
+//     console.error('Missing required environment variables for Twilio:');
+//     console.error('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID);
+//     console.error('TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN);
+//     console.error('TWILIO_SERVICE_ID:', process.env.TWILIO_SERVICE_ID);
+//     console.log("mongo uri",process.env.MONGO_URL);
 
-}
+// }
 
-const client = twilio( process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-console.log("client",client)
+// const client = twilio( process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+// console.log("client",client)
 //  Otp seding 
 // router.post("/send-otp", async (req, res) => {
 //     const { phoneNumber } = req.body;
