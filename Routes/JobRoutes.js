@@ -387,9 +387,6 @@ if (!accountSid || !authToken || !serviceid) {
 
 }
 
-// const accountSid = 'AC131d44ff22ec6e54f5f1e9736c3a5b15';
-// const authToken = '4dbf54206e0f375140a5ab4b6ea03926';
-// const client = twilio(accountSid, authToken);
 const client = twilio( process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 console.log("client",client)
 //  Otp seding 
