@@ -60,13 +60,9 @@ try {
     );
      // Set Cookie
      res.cookie("token", jwtToken, {
-      // httpOnly: true,
-      // secure: process.env.NODE_ENV === "production", // Use secure in production
-      // sameSite: "Lax", // Change to "None" if using cross-origin requests
-      // path: "/", // Ensure it is accessible throughout the app
-       httpOnly: true,
-  secure: true,
-  sameSite: "none"
+      httpOnly: true,
+      secure: true,
+      sameSite: "none"
     });
     res.status(200)
       .json({

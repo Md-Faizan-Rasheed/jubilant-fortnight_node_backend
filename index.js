@@ -24,7 +24,7 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-    origin:"https://gemini-frontend-sigma.vercel.app",
+    origin: allowedOrigins,
     // allow_origins:["*"], 
     credentials: true, // ✅ Allow cookies
     // credentials: false,
