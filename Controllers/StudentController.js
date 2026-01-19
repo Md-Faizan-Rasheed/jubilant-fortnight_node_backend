@@ -49,20 +49,6 @@ const verifyOtpHandler = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-// ✅ Check Auth
-// const checkAuth = (req, res) => {
-//   try {
-//     const token = req.cookies.token;
-//     if (!token) return res.json({ success: false });
-
-//     const decoded = jwt.verify(token, JWT_SECRET);
-//     res.json({ success: true, user: decoded });
-//   } catch {
-//     res.json({ success: false });
-//   }
-// };
-
 const checkAuth = (req, res) => {
   try {
     const token = req.cookies.token;

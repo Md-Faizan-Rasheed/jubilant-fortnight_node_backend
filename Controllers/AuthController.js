@@ -81,49 +81,6 @@ try {
     })}
 }
 
-// const login = async (req, res) => {
-//   try {
-//     const { email } = req.body;
-
-//     // Fake user for testing
-//     const user = {
-//       _id: "test_user_id",
-//       email: email || "test@test.com",
-//       company_name: "Test Company"
-//     };
-
-//     // Generate JWT
-//     const jwtToken = jwt.sign(
-//       { email: user.email, _id: user._id },
-//       process.env.JWT_SECRET || "test_secret",
-//       { expiresIn: "24h" }
-//     );
-
-//     // Set cookie
-//     res.cookie("token", jwtToken, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "Lax",
-//       path: "/",
-//     });
-
-//     return res.status(200).json({
-//       message: "Login Success (TEST MODE)",
-//       success: true,
-//       jwtToken,
-//       email: user.email,
-//       name: user.company_name,
-//     });
-
-//   } catch (error) {
-//     return res.status(500).json({
-//       message: "Internal Server Error",
-//       success: false
-//     });
-//   }
-// };
-
-
 module.exports = {
 signup,
 login

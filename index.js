@@ -18,9 +18,13 @@ const PORT = process.env.PORT || 8080;
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-// app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://gemini-frontend-sigma.vercel.app"
+];
+
 app.use(cors({
-    origin: "http://localhost:5173",  // Allows all domains
+    origin: allowedOrigins,
     credentials: true, // ✅ Allow cookies
     methods: ["GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]

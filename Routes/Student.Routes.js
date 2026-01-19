@@ -101,22 +101,6 @@ router.post("/verify-otp", async (req, res) => {
 });
 
 
-// router.post("/save-student-details", async (req, res) => {
-//     const {companyId,phoneNumber, studentName,email,adharNumber,resumeUrl } = req.body;
-  
-//     const existingStudent = await Student.findOne({ phoneNumber });
-//     if (existingStudent) {
-//       return res.json({ success: false, message: "This number is already registered for an interview." });
-//     }
-  
-//     const newStudent = new Student({companyId, phoneNumber, studentName,email, adharNumber,resumeUrl});
-//     await newStudent.save();
-  
-
-  
-//     res.json({ success: true,student_id:newStudent.id, message: "Student registered successfully!" });
-//   });
-  
 
 router.post("/save-student-details", async (req, res) => {
   try {

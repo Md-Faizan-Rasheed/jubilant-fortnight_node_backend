@@ -22,27 +22,3 @@ mongoose.connect(mongo_url)
             console.error('An unexpected error occurred:', error);
         }
     });
-
-// // Handling connection events
-// const db = mongoose.connection;
-
-// db.on('error', (error) =&gt; {
-//     console.error('MongoDB connection error:', error);
-// });
-
-// db.once('open', () =&gt; {
-//     console.log('Connected to MongoDB');
-// });
-
-// db.on('disconnected', () =&gt; {
-//     console.log('Disconnected from MongoDB');
-// });
-
-// // Gracefully close the connection when the application exits
-// process.on('SIGINT', () =&gt; {
-//     mongoose.connection.close(() =&gt; {
-//         console.log('Mongoose connection is disconnected'
-//          + ' due to application termination');
-//         process.exit(0);
-//     });
-// });
