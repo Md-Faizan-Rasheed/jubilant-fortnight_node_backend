@@ -24,11 +24,15 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-    origin: allowedOrigins,
-    credentials: true, // ✅ Allow cookies
+    // origin: allowedOrigins,
+    allow_origins:["*"], 
+    // credentials: true, // ✅ Allow cookies
+    credentials: false,
     methods: ["GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.options("*", cors());
 
 // Ping route
 app.get('/ping', (req, res) => {

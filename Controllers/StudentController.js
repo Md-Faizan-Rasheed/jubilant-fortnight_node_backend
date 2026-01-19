@@ -19,9 +19,12 @@ const setAuthCookie = (res, student) => {
   );
 
   res.cookie("token", token, {
-    httpOnly: true,
-     secure: true,        // REQUIRED on https
-    sameSite: "none",     // REQUIRED for cross-site
+    // httpOnly: true,
+    //  secure: true,        // REQUIRED on https
+    // sameSite: "none",     // REQUIRED for cross-site
+     httpOnly: true,
+  secure: true,
+  sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
     
   });
