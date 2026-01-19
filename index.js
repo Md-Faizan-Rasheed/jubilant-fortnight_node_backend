@@ -20,6 +20,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 const allowedOrigins = [
   "http://localhost:5173",
+"http://localhost:5174",
   "https://gemini-frontend-sigma.vercel.app"
 ];
 
