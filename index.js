@@ -24,15 +24,18 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-    // origin: allowedOrigins,
-    allow_origins:["*"], 
-    // credentials: true, // ✅ Allow cookies
-    credentials: false,
+    origin:"https://gemini-frontend-sigma.vercel.app",
+    // allow_origins:["*"], 
+    credentials: true, // ✅ Allow cookies
+    // credentials: false,
     methods: ["GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options("*", cors());
+app.options("*", cors({
+  origin: "https://gemini-frontend-sigma.vercel.app",
+  credentials: true
+}));
 
 // Ping route
 app.get('/ping', (req, res) => {
