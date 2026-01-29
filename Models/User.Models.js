@@ -146,22 +146,52 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   // Existing fields (keep your current fields)
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
+    company_name: {
+        type: String,
+        required: true,
+        trim: true, // Removes leading and trailing spaces
+    },
+    years_old: {
+        type: Number, // Changed to Number for better validation
+        required: true,
+        min: 0, // Ensures the number is non-negative
+    },
+    field_of_work: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true, // Ensures no duplicate email entries
+        trim: true,
+        match: [/.+@.+\..+/, "Please enter a valid email address"], // Basic email validation
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 6, // Ensures the password has a minimum length
+    },
+    emp_size:{
+        type:Number,
+        required:true,
+        min:0 // Ensures the number is non-negative
 
-  // ✅ Subscription & Plan Fields
-  plan: {
+    },
+    interviewIntroVideo:{
+        type:String,
+    },
+    companyLocation:{
+        type:String,
+    },
+    city:{
+        type:String,
+    },
+    state:{
+        type:String,
+    },
+    plan: {
     type: String,
     enum: ['FREE', 'STARTER', 'PRO'],
     default: 'FREE'
@@ -179,7 +209,7 @@ const userSchema = new mongoose.Schema({
     }
   },
 
-  // ✅ Usage tracking (optional but recommended)
+  //Usage tracking (optional but recommended)
   usage: {
     jobsCreated: {
       type: Number,

@@ -16,7 +16,6 @@ try {
     }
 
     const userModel = new  UserModels({company_name,years_old,field_of_work,email,password,emp_size});
-
     // before saving the data we encrypt our password 
     // using bcrypt library
     userModel.password = await bcrypt.hash(password,10);
