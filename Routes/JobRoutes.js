@@ -13,6 +13,7 @@ const twilio = require("twilio");
 // const { default: mongoose } = require('mongoose');
 const mongoose = require("mongoose");
 const Student = require("../Models/Studentdetails.Model"); // Adjust path as needed
+// const User = require('../Models/User.Models');
 // Import dotenv and configure it at the top of the file
 require('dotenv').config();
 
@@ -30,75 +31,139 @@ const validateRequest = (req, res, next) => {
     next();
 };
 
-// Add a new job
-router.post('/add',async (req, res) => {
-    const {jobTitle, status, plainTextJobDescription, questions, userId } = req.body;
+// // Add a new job ***
+// router.post('/add',async (req, res) => {
+//     const {jobTitle, status, plainTextJobDescription, questions, userId } = req.body;
 
-
-    if (!userId) {
-        return res.status(400).json({ error: "User ID is required." });
-    }
-    if (!jobTitle || !status || !plainTextJobDescription) {
-        return res.status(400).json({ error: "Missing required fields (jobTitle, status, plainTextJobDescription)." });
-    }
-    if (!Array.isArray(questions) || questions.some(q => !q.questionText)) {
-        return res.status(400).json({ error: "Each question must have a 'questionText' property." });
-    }
-
-        try {
-            const newJob = new Job({
-                jobTitle,
-                status,
-                plainTextJobDescription,
-                questions,
-                userId,
-                createdAt: new Date()
-            });
-
-            await newJob.save();
-            res.status(201).json({ message: 'Job created successfully!', job: newJob });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: error.message || 'Error adding job' });
-        }
-    }
-);
-
-
-// Generate a unique link for a job
-// router.post(
-//     '/api/jobs/generate-link',
-//     ensureAuthenticated,
-//     [body('jobDescription').notEmpty().withMessage('Job description is required')],
-//     validateRequest,
-//     async (req, res) => {
-//         const { jobDescription } = req.body;
-//         const userId = req.userId;
+//     if (!userId) {
+//         return res.status(400).json({ error: "User ID is required." });
+//     }
+//     if (!jobTitle || !status || !plainTextJobDescription) {
+//         return res.status(400).json({ error: "Missing required fields (jobTitle, status, plainTextJobDescription)." });
+//     }
+//     if (!Array.isArray(questions) || questions.some(q => !q.questionText)) {
+//         return res.status(400).json({ error: "Each question must have a 'questionText' property." });
+//     }
+//     console.log("Job type",typeof(Job));
 
 //         try {
-//             const uniqueId = uuidv4();
 //             const newJob = new Job({
-//                 jobTitle: `Generated Job - ${uniqueId}`,
-//                 status: 'Active',
-//                 plainTextJobDescription: jobDescription,
+//                 jobTitle,
+//                 status,
+//                 plainTextJobDescription,
+//                 questions,
 //                 userId,
+//                 createdAt: new Date()
 //             });
+// const user = await User.findById(userId);
+
+// console.log("user", user);
+// if (user.usage.jobsCreated >= user.limits.maxJobs) {
+//   return res.status(403).json({
+//     success: false,
+//     message: "Job limit reached. Upgrade your plan."
+//   });
+// }
+
+// const updatedUser = await User.findOneAndUpdate(
+//   {
+//     _id: userId,
+//     $expr: { $lt: ["$usage.jobsCreated", "$limits.maxJobs"] }
+//   },
+//   { $inc: { "usage.jobsCreated": 1 } },
+//   { new: true }
+// );
+
+// if (!updatedUser) {
+//   return res.status(403).json({
+//     success: false,
+//     message: "Job limit reached"
+//   });
+// }
 
 //             await newJob.save();
-//             res.status(201).json({
-//                 message: 'Job link generated successfully!',
-//                 link: `${FRONTEND_URL}/interview/${uniqueId}`,
-//                 job: newJob,
-//             });
+//             res.status(201).json({ message: 'Job created successfully!', job: newJob });
 //         } catch (error) {
 //             console.error(error);
-//             res.status(500).json({ error: error.message || 'Error generating job link' });
+//             res.status(500).json({ error: error.message || 'Error adding job' });
 //         }
 //     }
 // );
 
 
-// Get all jobs for a logged-in user
+router.post("/add", ensureAuthenticated, async (req, res) => {
+  const { jobTitle, status, plainTextJobDescription, questions,userId } = req.body;
+  // const userId = req.user.id; // 🔐 FROM TOKEN
+
+  // ✅ Validation
+  if (!jobTitle || !status || !plainTextJobDescription) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields"
+    });
+  }
+
+  if (!Array.isArray(questions) || questions.some(q => !q.questionText)) {
+    return res.status(400).json({
+      success: false,
+      message: "Each question must contain questionText"
+    });
+  }
+
+  try {
+    // 🔐 Atomic quota check + increment
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: userId,
+        $expr: { $lt: ["$usage.jobsCreated", "$limits.maxJobs"] }
+      },
+      { $inc: { "usage.jobsCreated": 1 } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(403).json({
+        success: false,
+        message: "Job limit reached. Upgrade your plan."
+      });
+    }
+
+    // ✅ Create job ONLY after quota is reserved
+    const newJob = new Job({
+      jobTitle,
+      status,
+      plainTextJobDescription,
+      questions,
+      userId,
+      createdAt: new Date()
+    });
+
+    await newJob.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Job created successfully",
+      job: newJob
+    });
+
+  } catch (error) {
+    console.error("Add job error:", error);
+
+    // 🛡 rollback quota if job save fails
+    await User.updateOne(
+      { _id: userId },
+      { $inc: { "usage.jobsCreated": -1 } }
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create job"
+    });
+  }
+});
+
+
+
 router.get('/api/all-jobs', ensureAuthenticated, async (req, res) => {
     const userId = req.userId;
     try {
@@ -112,17 +177,13 @@ router.get('/api/all-jobs', ensureAuthenticated, async (req, res) => {
 
 
 router.post('/api/user-id', async (req, res) => {
-    // const token = localStorage.getItem('token');
-    // console.log("BackedToken",token)
     try {
         const token = req.headers.authorization;
         if (!token) {
             return res.status(401).json({ message: "Unauthorized: No token provided" });
         }
-console.log("Backendtoken",token);
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded User:", decoded);
 
         const user = await User.findById(decoded._id);
         if (!user) {
@@ -137,31 +198,113 @@ console.log("Backendtoken",token);
 });
 
 
-// Route for deleting a job
-router.delete('/api/delete-job/:id', ensureAuthenticated, async (req, res) => {
-    const { id } = req.params;  // Get the job ID from the URL parameter
-console.log("Backend Side job Id",id)
-    try {
-        // Find the job by ID and delete it
-        const job = await Job.findById(id);
+// // Route for deleting a job *****
+// router.delete('/api/delete-job/:id', ensureAuthenticated, async (req, res) => {
+//     const { id } = req.params;  // Get the job ID from the URL parameter
+// console.log("Backend Side job Id",id)
+//     try {
+//         // Find the job by ID and delete it
+//         const job = await Job.findById(id);
+//         const userId = await Job.findById(id).select("userId");
+//         // console.log("userId",userId.userId);
 
-        if (!job) {
-            return res.status(404).json({ message: 'Job not found' });
-        }
+//         const user = await User.findById(userId.userId);
 
-        // Optionally check if the user owns the job (if userId is stored in job)
-        if (job.userId.toString() !== req.userId) {
-            return res.status(403).json({ message: 'Not authorized to delete this job' });
-        }
+//         if (!job) {
+//             return res.status(404).json({ message: 'Job not found' });
+//         }
 
-        await Job.findByIdAndDelete(id);  // Delete the job from the database
+//         // Optionally check if the user owns the job (if userId is stored in job)
+//         if (job.userId.toString() !== req.userId) {
+//             return res.status(403).json({ message: 'Not authorized to delete this job' });
+//         }
 
-        return res.status(200).json({ message: 'Job deleted successfully' });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Error deleting job', error: error.message });
+//         console.log("user",typeof(user.usage.jobsCreated));
+//         if (user.usage.jobsCreated <= 0) {
+//           return res.status(403).json({
+//             success: false,
+//             message: "You have no jobs to delete."
+//           });
+//         }       
+
+// const updatedUser = await User.findOneAndUpdate(
+//   {
+//     _id: userId.userId,
+//     $expr: { $lt: ["$usage.jobsCreated", "$limits.maxJobs"] }
+//   },
+//   { $inc: { "usage.jobsCreated": -1 } },
+//   { new: true }
+// );
+
+// if (!updatedUser) {
+//   return res.status(403).json({
+//     success: false,
+//     message: "You have no jobs to delete."
+//   });
+// }
+
+
+//         await Job.findByIdAndDelete(id);  // Delete the job from the database
+
+//         return res.status(200).json({ message: 'Job deleted successfully' });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ message: 'Error deleting job', error: error.message });
+//     }
+// });
+
+
+router.delete("/api/delete-job/:id", ensureAuthenticated, async (req, res) => {
+  const jobId = req.params.id;
+const job = await Job.findById(jobId);
+        const userId = await Job.findById(jobId).select("userId");
+        // console.log("userId",userId.userId);
+  try {
+    // 🔐 Find job owned by user
+    const job = await Job.findOne({ _id: jobId, userId: userId.userId });
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found or not authorized"
+      });
     }
+
+    // 🔐 Safe decrement (never below zero)
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: userId.userId,
+        "usage.jobsCreated": { $gt: 0 }
+      },
+      { $inc: { "usage.jobsCreated": -1 } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(403).json({
+        success: false,
+        message: "No jobs left to delete"
+      });
+    }
+
+    // ✅ Delete job
+    await job.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Job deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Delete job error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting job"
+    });
+  }
 });
+
+
 
 // get user details
 router.get('/api/users/:userId', async (req, res) => {
