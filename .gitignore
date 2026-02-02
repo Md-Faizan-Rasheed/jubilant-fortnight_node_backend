@@ -124,3 +124,5 @@ docker-compose.override.yml
 bdfastapi/service_account.json
 
 node_modules/
+
+otpverification-4d1f9-99f6acdb4f50.json

@@ -105,6 +105,247 @@ router.post("/verify-otp", async (req, res) => {
 
 
 
+
+// // Store OTP temporarily (in production, use Redis or database)
+// // For now, using in-memory storage for simplicity
+// const otpStore = new Map();
+
+// // OTP expiry time in milliseconds (5 minutes)
+// const OTP_EXPIRY = 5 * 60 * 1000;
+
+// /**
+//  * Generate a 6-digit OTP
+//  */
+// function generateOTP() {
+//   return Math.floor(100000 + Math.random() * 900000).toString();
+// }
+
+// /**
+//  * Send OTP using Firebase Authentication
+//  * POST /send-otp
+//  * Body: { phoneNumber: string }
+//  */
+// router.post("/send-otp", async (req, res) => {
+//   const { phoneNumber } = req.body;
+
+//   if (!phoneNumber) {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Phone number is required",
+//     });
+//   }
+
+//   try {
+//     console.log("📲 Sending OTP to:", phoneNumber);
+
+//     // Format phone number (ensure it has country code)
+//     let formattedPhone = phoneNumber.trim();
+//     if (!formattedPhone.startsWith("+")) {
+//       // Assuming Indian numbers, add +91 prefix
+//       formattedPhone = `+91${formattedPhone.replace(/^0+/, "")}`;
+//     }
+
+//     // Generate OTP
+//     const otp = generateOTP();
+    
+//     // Store OTP with expiry time
+//     otpStore.set(formattedPhone, {
+//       otp: otp,
+//       expiresAt: Date.now() + OTP_EXPIRY,
+//       attempts: 0
+//     });
+
+//     // Send OTP via SMS using Firebase (requires Twilio/other SMS provider integration)
+//     // For Firebase Auth, you typically use client-side reCAPTCHA verification
+//     // But for server-side, we can use a custom SMS provider
+
+//     // Option 1: Using Firebase Custom Token + SMS Provider
+//     // You'll need to integrate with an SMS service like Twilio, MSG91, etc.
+//     // For now, returning the OTP for testing (REMOVE IN PRODUCTION!)
+    
+//     console.log(`✅ OTP generated for ${formattedPhone}: ${otp}`);
+
+//     // In production, send OTP via SMS service here
+//     // Example with a hypothetical SMS service:
+//     // await sendSMS(formattedPhone, `Your OTP is: ${otp}. Valid for 5 minutes.`);
+
+//     return res.json({
+//       success: true,
+//       message: "OTP sent successfully",
+//       // REMOVE THIS IN PRODUCTION! Only for testing
+//       otp: process.env.NODE_ENV === 'development' ? otp : undefined
+//     });
+
+//   } catch (error) {
+//     console.error("❌ Error sending OTP:", error);
+//     return res.status(500).json({
+//       success: false,
+//       error: error.message || "Failed to send OTP",
+//     });
+//   }
+// });
+
+
+// /**
+//  * Verify OTP and create Firebase custom token
+//  * POST /verify-otp
+//  * Body: { phoneNumber: string, otp: string }
+//  */
+// router.post("/verify-otp", async (req, res) => {
+//   const { phoneNumber, otp } = req.body;
+
+//   if (!phoneNumber || !otp) {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Phone number and OTP are required",
+//     });
+//   }
+
+//   try {
+//     console.log("🔐 Verifying OTP for:", phoneNumber);
+
+//     // Format phone number
+//     let formattedPhone = phoneNumber.trim();
+//     if (!formattedPhone.startsWith("+")) {
+//       formattedPhone = `+91${formattedPhone.replace(/^0+/, "")}`;
+//     }
+
+//     // Check if OTP exists
+//     const storedOTPData = otpStore.get(formattedPhone);
+
+//     if (!storedOTPData) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "OTP not found or expired. Please request a new OTP.",
+//       });
+//     }
+
+//     // Check if OTP is expired
+//     if (Date.now() > storedOTPData.expiresAt) {
+//       otpStore.delete(formattedPhone);
+//       return res.status(400).json({
+//         success: false,
+//         error: "OTP has expired. Please request a new OTP.",
+//       });
+//     }
+
+//     // Check attempt limit (max 3 attempts)
+//     if (storedOTPData.attempts >= 3) {
+//       otpStore.delete(formattedPhone);
+//       return res.status(429).json({
+//         success: false,
+//         error: "Too many failed attempts. Please request a new OTP.",
+//       });
+//     }
+
+//     // Verify OTP
+//     if (storedOTPData.otp !== otp) {
+//       // Increment attempts
+//       storedOTPData.attempts += 1;
+//       otpStore.set(formattedPhone, storedOTPData);
+
+//       return res.status(400).json({
+//         success: false,
+//         error: "Invalid OTP",
+//         attemptsRemaining: 3 - storedOTPData.attempts
+//       });
+//     }
+
+//     // OTP is valid - create Firebase custom token
+//     const uid = formattedPhone; // Use phone number as UID
+
+//     // Create or update user in Firebase
+//     let userRecord;
+//     try {
+//       userRecord = await admin.auth().getUserByPhoneNumber(formattedPhone);
+//     } catch (error) {
+//       // User doesn't exist, create new user
+//       userRecord = await admin.auth().createUser({
+//         phoneNumber: formattedPhone,
+//         uid: uid
+//       });
+//     }
+
+//     // Generate custom token
+//     const customToken = await admin.auth().createCustomToken(userRecord.uid);
+
+//     // Clear OTP from store
+//     otpStore.delete(formattedPhone);
+
+//     console.log(`✅ OTP verified successfully for ${formattedPhone}`);
+
+//     return res.json({
+//       success: true,
+//       message: "OTP verified successfully",
+//       token: customToken,
+//       user: {
+//         uid: userRecord.uid,
+//         phoneNumber: userRecord.phoneNumber
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error("❌ Error verifying OTP:", error);
+//     return res.status(500).json({
+//       success: false,
+//       error: error.message || "Failed to verify OTP",
+//     });
+//   }
+// });
+
+// /**
+//  * Resend OTP
+//  * POST /resend-otp
+//  * Body: { phoneNumber: string }
+//  */
+// router.post("/resend-otp", async (req, res) => {
+//   const { phoneNumber } = req.body;
+
+//   if (!phoneNumber) {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Phone number is required",
+//     });
+//   }
+
+//   try {
+//     let formattedPhone = phoneNumber.trim();
+//     if (!formattedPhone.startsWith("+")) {
+//       formattedPhone = `+91${formattedPhone.replace(/^0+/, "")}`;
+//     }
+
+//     // Clear old OTP if exists
+//     otpStore.delete(formattedPhone);
+
+//     // Generate new OTP
+//     const otp = generateOTP();
+    
+//     otpStore.set(formattedPhone, {
+//       otp: otp,
+//       expiresAt: Date.now() + OTP_EXPIRY,
+//       attempts: 0
+//     });
+
+//     console.log(`🔄 OTP resent to ${formattedPhone}: ${otp}`);
+
+//     // Send OTP via SMS service here (in production)
+
+//     return res.json({
+//       success: true,
+//       message: "OTP resent successfully",
+//       otp: process.env.NODE_ENV === 'development' ? otp : undefined
+//     });
+
+//   } catch (error) {
+//     console.error("❌ Error resending OTP:", error);
+//     return res.status(500).json({
+//       success: false,
+//       error: error.message || "Failed to resend OTP",
+//     });
+//   }
+// });
+
+
 router.post("/save-student-details", async (req, res) => {
   try {
     const {

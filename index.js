@@ -55,6 +55,7 @@ app.use("/api/interview-report", interviewReportsRoutes);
 app.use("/api",recentInterviewRoutes)
 app.use('/students',StudentRouter);
 app.use("/api/billing", require("./Routes/Payment"));
+app.use("/api", require("./Routes/Feedback.Routes"));
 
 
 
