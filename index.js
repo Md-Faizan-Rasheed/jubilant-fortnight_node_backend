@@ -56,7 +56,7 @@ app.use("/api",recentInterviewRoutes)
 app.use('/students',StudentRouter);
 app.use("/api/billing", require("./Routes/Payment"));
 app.use("/api", require("./Routes/Feedback.Routes"));
-
+app.use("/admin", require("./Routes/AdminRoutes"));
 
 
 app.listen(PORT, () => {
