@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 
 const mongoose = require("mongoose");
 const Student = require("../Models/Studentdetails.Model"); // Adjust path as needed
-
+const InterviwewReport = require("../Models/InterviewReport.Models"); // Adjust path as needed
 const JWT_SECRET = process.env.JWT_SECRET
 
 const {
@@ -558,6 +558,30 @@ router.get("/student-skill/:studentId", async (req, res) => {
     });
   }
 });
+
+
+// GET all interview reports by studentId
+router.get("/student-report/:studentId", async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const reports = await InterviwewReport
+      .find({ candidateId: studentId })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: reports
+    });
+  } catch (err) {
+    console.error("Fetch student reports error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch student interview reports"
+    });
+  }
+});
+
 
 
 
