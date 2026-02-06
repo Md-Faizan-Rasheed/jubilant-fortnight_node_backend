@@ -451,123 +451,123 @@ router.post("/check-student", async (req, res) => {
   }
 });
 
-// router.post("/send-otp", async (req, res) => {
-//   try {
-//     const { email } = req.body;
+router.post("/send-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
 
-//     if (!email) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Email is required",
-//       });
-//     }
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: "Email is required",
+      });
+    }
 
-//     let student = await Student.findOne({ email });
-//     if (!student) {
-//       student = await Student.create({ email });
-//     }
+    let student = await Student.findOne({ email });
+    if (!student) {
+      student = await Student.create({ email });
+    }
 
-//     const otp = generateOTP();
-//     const otpHash = hashOTP(otp);
+    const otp = generateOTP();
+    const otpHash = hashOTP(otp);
 
-//     student.otpHash = otpHash;
-//     student.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-//     await student.save();
+    student.otpHash = otpHash;
+    student.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await student.save();
 
-//     await transporter.sendMail({
-//       from: `"Your App" <${process.env.EMAIL_USER}>`,
-//       to: email,
-//       subject: "Your OTP Code",
-//       html: `
-//         <h2>Email Verification</h2>
-//         <p>Your OTP is:</p>
-//         <h1>${otp}</h1>
-//         <p>This OTP will expire in 10 minutes.</p>
-//       `,
-//     });
+    await transporter.sendMail({
+      from: `"Your App" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your OTP Code",
+      html: `
+        <h2>Email Verification</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP will expire in 10 minutes.</p>
+      `,
+    });
 
-//     console.log("📧 OTP sent to:", email);
+    console.log("📧 OTP sent to:", email);
 
-//     return res.json({
-//       success: true,
-//       message: "OTP sent successfully",
-//     });
-//   } catch (err) {
-//     console.error("Send OTP Error:", err);
-//     return res.status(500).json({
-//       success: false,
-//       error: "Failed to send OTP",
-//     });
-//   }
-// });
+    return res.json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+  } catch (err) {
+    console.error("Send OTP Error:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to send OTP",
+    });
+  }
+});
 
-// router.post("/verify-otp", async (req, res) => {
-//   try {
-//     const { email, otp } = req.body;
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
 
-//     if (!email || !otp) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Email and OTP are required",
-//       });
-//     }
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        error: "Email and OTP are required",
+      });
+    }
 
-//     const student = await Student.findOne({ email });
+    const student = await Student.findOne({ email });
 
-//     if (!student || !student.otpHash) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "OTP not requested",
-//       });
-//     }
+    if (!student || !student.otpHash) {
+      return res.status(400).json({
+        success: false,
+        error: "OTP not requested",
+      });
+    }
 
-//     if (student.otpExpires < Date.now()) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "OTP expired",
-//       });
-//     }
+    if (student.otpExpires < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        error: "OTP expired",
+      });
+    }
 
-//     const hashedOTP = hashOTP(otp);
+    const hashedOTP = hashOTP(otp);
 
-//     if (hashedOTP !== student.otpHash) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Invalid OTP",
-//       });
-//     }
+    if (hashedOTP !== student.otpHash) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid OTP",
+      });
+    }
 
-//     // Clear OTP after success
-//     student.otpHash = undefined;
-//     student.otpExpires = undefined;
-//     await student.save();
+    // Clear OTP after success
+    student.otpHash = undefined;
+    student.otpExpires = undefined;
+    await student.save();
 
-//     const token = jwt.sign(
-//       { id: student._id, email: student.email },
-//       JWT_SECRET,
-//       { expiresIn: "7d" }
-//     );
+    const token = jwt.sign(
+      { id: student._id, email: student.email },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: true,
-//       sameSite: "none",
-//       maxAge: 7 * 24 * 60 * 60 * 1000,
-//     });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-//     return res.json({
-//       success: true,
-//       studentId: student._id,
-//       message: "Email verified successfully",
-//     });
-//   } catch (err) {
-//     console.error("Verify OTP Error:", err);
-//     return res.status(500).json({
-//       success: false,
-//       error: "OTP verification failed",
-//     });
-//   }
-// });
+    return res.json({
+      success: true,
+      studentId: student._id,
+      message: "Email verified successfully",
+    });
+  } catch (err) {
+    console.error("Verify OTP Error:", err);
+    return res.status(500).json({
+      success: false,
+      error: "OTP verification failed",
+    });
+  }
+});
 
 
 
