@@ -12,7 +12,7 @@ const StudentDetailsSchema = new Schema({
     },
     phoneNumber: {
         type: Number,
-        required: true,
+        required: false,
         min: 0,
     },
     studentName: {
@@ -28,10 +28,8 @@ const StudentDetailsSchema = new Schema({
     adharNumber: {
         type: Number,
     },
-    otp: {
-        type: String, // keep as String to preserve leading zeros
-        required: false,
-    },
+    otpHash: String,
+    otpExpires: Date,
     resumeUrl: {
         type: String,
         required: false,

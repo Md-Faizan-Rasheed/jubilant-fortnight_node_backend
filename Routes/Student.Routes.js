@@ -12,6 +12,10 @@ const mongoose = require("mongoose");
 const Student = require("../Models/Studentdetails.Model"); // Adjust path as needed
 const InterviwewReport = require("../Models/InterviewReport.Models"); // Adjust path as needed
 const JWT_SECRET = process.env.JWT_SECRET
+const { transporter } = require("../utils/mailers");
+const otpUtils = require("../utils/crypto");
+const { generateOTP, hashOTP } = otpUtils;
+
 
 const {
   sendOtpHandler,
@@ -30,78 +34,78 @@ router.post("/logout", logout);
 
 
 
-router.post("/send-otp", async (req, res) => {
-  const { phoneNumber } = req.body;
+// router.post("/send-otp", async (req, res) => {
+//   const { phoneNumber } = req.body;
 
-  if (!phoneNumber) {
-    return res.status(400).json({
-      success: false,
-      error: "Phone number is required",
-    });
-  }
+//   if (!phoneNumber) {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Phone number is required",
+//     });
+//   }
 
-  console.log("📲 [DUMMY] Sending OTP to:", phoneNumber);
+//   console.log("📲 [DUMMY] Sending OTP to:", phoneNumber);
 
- let student = await Student.findOne({ phoneNumber });
-    if (!student) {
-      student = await Student.create({ phoneNumber });
-    }
+//  let student = await Student.findOne({ phoneNumber });
+//     if (!student) {
+//       student = await Student.create({ phoneNumber });
+//     }
 
-  // Simulate delay (optional)
-  setTimeout(() => {
+//   // Simulate delay (optional)
+//   setTimeout(() => {
 
-    setAuthCookie(res, student);
-    // res.json({ success: true, studentId: student._id });
-    return res.json({
-      success: true,
-      message: "OTP sent successfully (dummy)",
-      otp: "123456", // expose only in testing
-    });
-  }, 500);
-});
+//     setAuthCookie(res, student);
+//     // res.json({ success: true, studentId: student._id });
+//     return res.json({
+//       success: true,
+//       message: "OTP sent successfully (dummy)",
+//       otp: "123456", // expose only in testing
+//     });
+//   }, 500);
+// });
 
 
-router.post("/verify-otp", async (req, res) => {
-  const { phoneNumber, otp } = req.body;
+// router.post("/verify-otp", async (req, res) => {
+//   const { phoneNumber, otp } = req.body;
 
-  if (!phoneNumber || !otp) {
-    return res.status(400).json({
-      success: false,
-      error: "Phone number and OTP are required",
-    });
-  }
+//   if (!phoneNumber || !otp) {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Phone number and OTP are required",
+//     });
+//   }
 
-  console.log("🔐 [DUMMY] Verifying OTP for:", phoneNumber);
+//   console.log("🔐 [DUMMY] Verifying OTP for:", phoneNumber);
 
-  if (otp === "123456") {
-    // do it in real scenario
-    // ✅ Generate JWT
-  const token = jwt.sign({ id: Student._id, phone: Student.phoneNumber }, JWT_SECRET, {
-    expiresIn: "7d",
-  });
+//   if (otp === "123456") {
+//     // do it in real scenario
+//     // ✅ Generate JWT
+//   const token = jwt.sign({ id: Student._id, phone: Student.phoneNumber }, JWT_SECRET, {
+//     expiresIn: "7d",
+//   });
 
-  // ✅ Set cookie
-  res.cookie("token", token, {
-    // httpOnly: true,
-    // secure: process.env.NODE_ENV === "production",
-    // sameSite: "strict",
-     httpOnly: true,
-  secure: true,
-  sameSite: "none",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+//   // ✅ Set cookie
+//   res.cookie("token", token, {
+//     // httpOnly: true,
+//     // secure: process.env.NODE_ENV === "production",
+//     // sameSite: "strict",
+//      httpOnly: true,
+//   secure: true,
+//   sameSite: "none",
+//     maxAge: 7 * 24 * 60 * 60 * 1000,
+//   });
 
-    return res.json({
-      success: true,
-      message: "OTP verified successfully (dummy)",
-    });
-  } else {
-    return res.status(400).json({
-      success: false,
-      error: "Invalid OTP",
-    });
-  }
-});
+//     return res.json({
+//       success: true,
+//       message: "OTP verified successfully (dummy)",
+//     });
+//   } else {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Invalid OTP",
+//     });
+//   }
+// });
 
 
 
@@ -416,25 +420,26 @@ router.post("/save-student-details", async (req, res) => {
 });
 
 
-router.post("/check-student",async (req, res) => {
-  try {
-    const { phoneNumber } = req.body;
 
-    const student = await Student.findOne({ phoneNumber });
+router.post("/check-student", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const student = await Student.findOne({ email });
 
     if (!student) {
       return res.status(404).json({
         success: false,
         exists: false,
         message:
-          "User with this mobile number is not registered. Please register first to sign in successfully."
+          "User with this email is not registered. Please register first to sign in successfully."
       });
     }
 
     return res.json({
       success: true,
       exists: true,
-      studentId: student._id  
+      studentId: student._id
     });
 
   } catch (err) {
@@ -444,7 +449,195 @@ router.post("/check-student",async (req, res) => {
       message: "Internal server error"
     });
   }
-})
+});
+
+// router.post("/send-otp", async (req, res) => {
+//   const { email } = req.body;
+
+//   if (!email) {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Email is required",
+//     });
+//   }
+
+//   console.log("📧 [DUMMY] Sending OTP to:", email);
+
+//   let student = await Student.findOne({ email });
+//   if (!student) {
+//     student = await Student.create({ email });
+//   }
+
+//   setTimeout(() => {
+//     setAuthCookie(res, student);
+//     return res.json({
+//       success: true,
+//       message: "OTP sent successfully (dummy)",
+//       otp: "123456",
+//     });
+//   }, 500);
+// });
+
+// router.post("/verify-otp", async (req, res) => {
+//   const { email, otp } = req.body;
+
+//   if (!email || !otp) {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Email and OTP are required",
+//     });
+//   }
+
+//   console.log("🔐 [DUMMY] Verifying OTP for:", email);
+
+//   if (otp === "123456") {
+//     const student = await Student.findOne({ email });
+
+//     const token = jwt.sign(
+//       { id: student._id, email: student.email },
+//       JWT_SECRET,
+//       { expiresIn: "7d" }
+//     );
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: true,
+//       sameSite: "none",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     return res.json({
+//       success: true,
+//       studentId: student._id,
+//       message: "OTP verified successfully (dummy)",
+//     });
+//   } else {
+//     return res.status(400).json({
+//       success: false,
+//       error: "Invalid OTP",
+//     });
+//   }
+// });
+
+router.post("/send-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: "Email is required",
+      });
+    }
+
+    let student = await Student.findOne({ email });
+    if (!student) {
+      student = await Student.create({ email });
+    }
+
+    const otp = generateOTP();
+    const otpHash = hashOTP(otp);
+
+    student.otpHash = otpHash;
+    student.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await student.save();
+
+    await transporter.sendMail({
+      from: `"Your App" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your OTP Code",
+      html: `
+        <h2>Email Verification</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP will expire in 10 minutes.</p>
+      `,
+    });
+
+    console.log("📧 OTP sent to:", email);
+
+    return res.json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+  } catch (err) {
+    console.error("Send OTP Error:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to send OTP",
+    });
+  }
+});
+
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        error: "Email and OTP are required",
+      });
+    }
+
+    const student = await Student.findOne({ email });
+
+    if (!student || !student.otpHash) {
+      return res.status(400).json({
+        success: false,
+        error: "OTP not requested",
+      });
+    }
+
+    if (student.otpExpires < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        error: "OTP expired",
+      });
+    }
+
+    const hashedOTP = hashOTP(otp);
+
+    if (hashedOTP !== student.otpHash) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid OTP",
+      });
+    }
+
+    // Clear OTP after success
+    student.otpHash = undefined;
+    student.otpExpires = undefined;
+    await student.save();
+
+    const token = jwt.sign(
+      { id: student._id, email: student.email },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({
+      success: true,
+      studentId: student._id,
+      message: "Email verified successfully",
+    });
+  } catch (err) {
+    console.error("Verify OTP Error:", err);
+    return res.status(500).json({
+      success: false,
+      error: "OTP verification failed",
+    });
+  }
+});
+
+
 
 router.patch("/update-skills", async (req, res) => {
   try {
