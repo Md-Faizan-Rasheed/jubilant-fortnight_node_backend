@@ -15,18 +15,28 @@
 //   transporter
 // }
 
-
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",   // 👈 IMPORTANT
+  service: "gmail",            // 👈 IMPORTANT for Render
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // App Password
+    pass: process.env.EMAIL_PASS, // Gmail App Password
   },
-  connectionTimeout: 10 * 1000, // 10 seconds
-  greetingTimeout: 10 * 1000,
-  socketTimeout: 10 * 1000,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
-module.exports = transporter;
+// Optional but VERY useful for debugging
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ Mailer config error:", error);
+  } else {
+    console.log("✅ Mail server is ready to send emails");
+  }
+});
+
+module.exports = {
+  transporter,
+};

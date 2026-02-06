@@ -451,6 +451,58 @@ router.post("/check-student", async (req, res) => {
   }
 });
 
+// router.post("/send-otp", async (req, res) => {
+//   try {
+//     const { email } = req.body;
+
+//     if (!email) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Email is required",
+//       });
+//     }
+
+//     let student = await Student.findOne({ email });
+//     if (!student) {
+//       student = await Student.create({ email });
+//     }
+
+//     const otp = generateOTP();
+//     const otpHash = hashOTP(otp);
+
+//     student.otpHash = otpHash;
+//     student.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+//     await student.save();
+
+//     await transporter.sendMail({
+//       from: `"Your App" <${process.env.EMAIL_USER}>`,
+//       to: email,
+//       subject: "Your OTP Code",
+//       html: `
+//         <h2>Email Verification</h2>
+//         <p>Your OTP is:</p>
+//         <h1>${otp}</h1>
+//         <p>This OTP will expire in 10 minutes.</p>
+//       `,
+//     });
+
+//     console.log("📧 OTP sent to:", email);
+
+//     return res.json({
+//       success: true,
+//       message: "OTP sent successfully",
+//     });
+//   } catch (err) {
+//     console.error("Send OTP Error:", err);
+//     return res.status(500).json({
+//       success: false,
+//       error: "Failed to send OTP",
+//     });
+//   }
+// });
+
+
+
 router.post("/send-otp", async (req, res) => {
   try {
     const { email } = req.body;
